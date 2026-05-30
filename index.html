@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sidebar-w   : 248px;
+      --bg          : #0f1117;
+      --surface     : #181c27;
+      --surface-2   : #1e2235;
+      --border      : rgba(255,255,255,0.07);
+      --text        : #e8eaf0;
+      --text-muted  : #7b82a0;
+      --accent      : #4f8ef7;
+      --accent-glow : rgba(79,142,247,0.18);
+
+      --green       : #34d399;
+      --green-bg    : rgba(52,211,153,0.10);
+      --green-border: rgba(52,211,153,0.25);
+
+      --orange      : #fb923c;
+      --orange-bg   : rgba(251,146,60,0.10);
+      --orange-border: rgba(251,146,60,0.28);
+
+      --red         : #f87171;
+      --red-bg      : rgba(248,113,113,0.10);
+      --red-border  : rgba(248,113,113,0.28);
+
+      --radius      : 14px;
+      --radius-sm   : 8px;
+      --font        : 'DM Sans', sans-serif;
+      --font-mono   : 'DM Mono', monospace;
+      --trans       : 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── Layout ─────────────────────────────────────────── */
+    .layout { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 50;
+      transition: transform var(--trans);
+    }
+
+    .sidebar-top {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: white;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .brand-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-text span { color: var(--accent); }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 12px 8px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--trans);
+      font-size: 13.5px;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .nav-item:hover { background: var(--surface-2); color: var(--text); }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(79,142,247,0.2);
+    }
+
+    .nav-item i { width: 16px; font-size: 13px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      cursor: default;
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, #7c5bf7 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+
+    .user-meta { overflow: hidden; }
+    .user-name { font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role-label { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Main area ──────────────────────────────────────── */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* ── Top bar ────────────────────────────────────────── */
+    .topbar {
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .menu-btn {
+      display: none;
+      width: 34px; height: 34px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-muted);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all var(--trans);
+    }
+
+    .menu-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Content ────────────────────────────────────────── */
+    .content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+    .page { display: none; animation: fadeIn 0.25s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--trans);
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { filter: brightness(1.12); box-shadow: 0 0 16px var(--accent-glow); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-ghost {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { color: var(--text); background: var(--surface); }
+
+    /* ── Stats row ──────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: border-color var(--trans);
+    }
+
+    .stat-card:hover { border-color: rgba(255,255,255,0.12); }
+
+    .stat-dot {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .stat-dot.green  { background: var(--green-bg);  color: var(--green);  }
+    .stat-dot.orange { background: var(--orange-bg); color: var(--orange); }
+    .stat-dot.red    { background: var(--red-bg);    color: var(--red);    }
+
+    .stat-num   { font-size: 26px; font-weight: 700; line-height: 1; font-family: var(--font-mono); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── Filter pills ───────────────────────────────────── */
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+
+    .pill {
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--trans);
+    }
+
+    .pill:hover, .pill.active {
+      background: var(--accent-glow);
+      border-color: rgba(79,142,247,0.3);
+      color: var(--accent);
+    }
+
+    /* ── Cards grid ─────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+    }
+
+    .mod-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: transform var(--trans), border-color var(--trans), box-shadow var(--trans);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mod-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .mod-card.vigente::before  { background: var(--green);  }
+    .mod-card.requiere::before { background: var(--orange); }
+    .mod-card.vencido::before  { background: var(--red);    }
+
+    .mod-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    }
+
+    .mod-card.vigente:hover  { border-color: var(--green-border);  }
+    .mod-card.requiere:hover { border-color: var(--orange-border); }
+    .mod-card.vencido:hover  { border-color: var(--red-border);    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      padding-left: 8px;
+    }
+
+    .card-mod  { font-size: 15px; font-weight: 700; }
+    .card-line { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge.vigente  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border);  }
+    .badge.requiere { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+    .badge.vencido  { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border);    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 8px;
+      margin-bottom: 14px;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .meta-row i { width: 13px; font-size: 11px; }
+    .meta-row strong { color: var(--text); font-weight: 500; }
+
+    .card-msg {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .card-msg.vigente  { background: var(--green-bg);  color: #6ee7b7; border: 1px solid var(--green-border);  }
+    .card-msg.requiere { background: var(--orange-bg); color: #fdba74; border: 1px solid var(--orange-border); }
+    .card-msg.vencido  { background: var(--red-bg);    color: #fca5a5; border: 1px solid var(--red-border);    }
+
+    /* ── States ─────────────────────────────────────────── */
+    .state-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 20px;
+      color: var(--text-muted);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .state-box i { font-size: 40px; opacity: 0.3; }
+    .state-box p { font-size: 14px; }
+
+    .spinner {
+      width: 32px; height: 32px;
+      border: 2.5px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .last-upd { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+
+    /* ── Form page ──────────────────────────────────────── */
+    .form-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .form-wrap iframe {
+      width: 100%;
+      height: calc(100vh - 160px);
+      border: none;
+      display: block;
+    }
+
+    /* ── Profile page ───────────────────────────────────── */
+    .profile-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      max-width: 440px;
+    }
+
+    .profile-ava {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #7c5bf7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 700; color: white;
+      margin-bottom: 18px;
+      box-shadow: 0 0 28px rgba(79,142,247,0.25);
+    }
+
+    .profile-name  { font-size: 19px; font-weight: 700; margin-bottom: 3px; }
+    .profile-email { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .role-chip.admin    { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(79,142,247,0.25); }
+    .role-chip.visitante{ background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .divider { height: 1px; background: var(--border); margin: 22px 0; }
+
+    .prow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .prow:last-child { border-bottom: none; }
+    .prow i { color: var(--text-muted); width: 14px; font-size: 12px; }
+    .prow .plabel { color: var(--text-muted); margin-right: 4px; }
+    .prow strong { color: var(--text); }
+
+    <div style="margin-top:24px">
+      <button class="btn btn-ghost" onclick="doLogout()" style="width:100%;justify-content:center">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+        Cerrar sesión
+      </button>
+    </div>
+
+    /* ── Overlay (mobile) ───────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 40;
+      backdrop-filter: blur(2px);
+    }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 800px) {
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        transform: translateX(-100%);
+        z-index: 60;
+      }
+
+      .sidebar.open { transform: translateX(0); box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
+      .overlay.open  { display: block; }
+      .menu-btn { display: flex; }
+      .content { padding: 20px 16px; }
+      .stats-row { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── Login screen ───────────────────────────────────────── -->
+  <div id="loginScreen" style="
+    position:fixed; inset:0; z-index:999;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;">
+
+    <div style="
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:40px 36px;
+      width:100%; max-width:380px;
+      box-shadow:0 24px 60px rgba(0,0,0,0.4);">
+
+      <!-- Logo -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
+        <div style="
+          width:38px;height:38px;border-radius:10px;
+          background:var(--accent);
+          display:flex;align-items:center;justify-content:center;
+          font-size:16px;color:white;
+          box-shadow:0 0 18px var(--accent-glow)">
+          <i class="fas fa-industry"></i>
+        </div>
+        <span style="font-size:17px;font-weight:700">
+          Control <span style="color:var(--accent)">Lines</span>
+        </span>
+    </div>
+
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px">Iniciar sesión</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">
+      Ingresa tu correo de Google para continuar
+    </div>
+
+    <!-- Input -->
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">
+        Correo electrónico
+      </label>
+      <input id="loginEmail" type="email" placeholder="tu@gmail.com"
+        style="
+          width:100%;padding:11px 14px;
+          background:var(--surface-2);
+          border:1px solid var(--border);
+          border-radius:var(--radius-sm);
+          color:var(--text);font-family:var(--font);font-size:14px;
+          outline:none;transition:border-color 0.2s;"
+        onkeydown="if(event.key==='Enter') doLogin()"
+        onfocus="this.style.borderColor='var(--accent)'"
+        onblur="this.style.borderColor='var(--border)'" />
+    </div>
+
+    <!-- Error message -->
+    <div id="loginError" style="
+      display:none;
+      background:var(--red-bg);border:1px solid var(--red-border);
+      color:var(--red);border-radius:var(--radius-sm);
+      padding:9px 12px;font-size:12.5px;margin-bottom:14px">
+    </div>
+
+    <!-- Button -->
+    <button onclick="doLogin()" id="loginBtn" class="btn btn-primary" 
+      style="width:100%;justify-content:center;padding:12px">
+      <i class="fas fa-arrow-right-to-bracket"></i>
+      Ingresar
+    </button>
+  </div>
+</div>
+<div class="layout">
+
+  <!-- ── Sidebar ───────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <div class="brand-icon"><i class="fas fa-industry"></i></div>
+        <div class="brand-text">Control <span>Lines</span></div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menú</div>
+
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <i class="fas fa-gauge-high"></i>
+        Dashboard
+      </div>
+
+      <div class="nav-item admin-only hidden" data-page="form" onclick="navigate('form')">
+        <i class="fas fa-clipboard-list"></i>
+        Formulario
+      </div>
+
+      <div class="nav-section-label" style="margin-top:8px">Cuenta</div>
+
+      <div class="nav-item" data-page="profile" onclick="navigate('profile')">
+        <i class="fas fa-circle-user"></i>
+        Perfil
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="user-meta">
+          <div class="user-name"  id="sidebarName">Cargando...</div>
+          <div class="user-role-label" id="sidebarRole"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main area ─────────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="refreshBtn" onclick="loadDashboard()" style="display:none">
+          <i class="fas fa-arrows-rotate" id="refreshIcon"></i>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── Dashboard page ─────────────────────────── -->
+      <div class="page active" id="page-dashboard">
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-dot green"><i class="fas fa-circle-check"></i></div>
+            <div>
+              <div class="stat-num" id="cntVigente">—</div>
+              <div class="stat-label">Vigente</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-dot orange"><i class="fas fa-triangle-exclamation"></i></div>
+            <div>
+              <div class="stat-num" id="cntRequiere">—</div>
+              <div class="stat-label">Requiere Mantenimiento</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-dot red"><i class="fas fa-circle-xmark"></i></div>
+            <div>
+              <div class="stat-num" id="cntVencido">—</div>
+              <div class="stat-label">Vencido</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="pill active" onclick="applyFilter('all', this)">Todos</div>
+          <div class="pill" onclick="applyFilter('vigente', this)">✅ Vigente</div>
+          <div class="pill" onclick="applyFilter('requiere', this)">⚠️ Requiere Mantenimiento</div>
+          <div class="pill" onclick="applyFilter('vencido', this)">🔴 Vencido</div>
+        </div>
+
+        <div id="cardsWrap">
+          <div class="state-box">
+            <div class="spinner"></div>
+            <p>Cargando módulos...</p>
+          </div>
+        </div>
+
+        <div class="last-upd" id="lastUpd"></div>
+      </div>
+
+      <!-- ── Form page ──────────────────────────────── -->
+      <!--<div class="page" id="page-form">
+        <div class="form-wrap">
+          <iframe id="formFrame" src="" allowfullscreen></iframe>
+        </div>
+      </div>-->
+      <div class="page" id="page-form">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:14px">
+          <button class="btn btn-ghost" onclick="reloadForm()">
+            <i class="fas fa-rotate-right"></i>
+            Nueva respuesta
+          </button>
+        </div>
+        <div class="form-wrap">
+          <iframe id="formFrame" src="" allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <!-- ── Profile page ───────────────────────────── -->
+      <div class="page" id="page-profile">
+        <div class="profile-box">
+          <div class="profile-ava" id="profAva">?</div>
+          <div class="profile-name"  id="profName">—</div>
+          <div class="profile-email" id="profEmail">—</div>
+          <div id="profRoleChip"></div>
+          <div class="divider"></div>
+          <div class="prow">
+            <i class="fas fa-shield-halved"></i>
+            <span class="plabel">Rol:</span>
+            <strong id="profRole">—</strong>
+          </div>
+          <div class="prow">
+            <i class="fas fa-calendar-day"></i>
+            <span class="plabel">Sesión iniciada:</span>
+            <strong id="profDate">—</strong>
+          </div>
+          <div class="prow">
+            <i class="fas fa-envelope"></i>
+            <span class="plabel">Cuenta:</span>
+            <strong id="profAcct">—</strong>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /layout -->
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- ─────────────────────────────────────────── -->
+<script>
+  // ── Config ──────────────────────────────────────────────────
+  const WARNING_DAYS = 1   // Days before due date to show orange warning (0 = only on due day)
+
+  // ── State ────────────────────────────────────────────────────
+  let allCards     = []
+  let activeFilter = 'all'
+  let userRole     = 'visitante'
+
+  // ── Boot ─────────────────────────────────────────────────────
+  window.addEventListener('', () => {
+  // Check if user already logged in this session
+  const saved = sessionStorage.getItem('cl_user')
+  if (saved) {
+    initUser(JSON.parse(saved))   // skip login screen
+    }
+    // Otherwise, login screen stays visible until doLogin() is called
+  })
+
+  function doLogout() {
+    sessionStorage.removeItem('cl_user')
+    location.reload()
+  }
+
+  function reloadForm() {
+    const frame = document.getElementById('formFrame')
+    const src   = frame.src
+    frame.src   = ''                          // force reset
+    setTimeout(() => frame.src = src, 100)   // reload clean
+  }
+
+  // ── Login ─────────────────────────────────────────────────────────────────────
+  function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim()
+    const errEl = document.getElementById('loginError')
+    const btn   = document.getElementById('loginBtn')
+
+    errEl.style.display = 'none'
+
+    if (!email || !email.includes('@')) {
+      errEl.textContent  = 'Por favor ingresa un correo válido.'
+      errEl.style.display = 'block'
+      return
+    }
+
+    btn.disabled   = true
+    btn.innerHTML  = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Verificando...'
+
+    google.script.run
+      .withSuccessHandler(profile => {
+        sessionStorage.setItem('cl_user', JSON.stringify(profile))  // persist for the session
+        document.getElementById('loginScreen').style.display = 'none'
+        initUser(profile)
+        loadDashboard()
+      })
+      .withFailureHandler(e => {
+        errEl.textContent   = 'Error al verificar: ' + e.message
+        errEl.style.display = 'block'
+        btn.disabled        = false
+        btn.innerHTML       = '<i class="fas fa-arrow-right-to-bracket"></i> Ingresar'
+      })
+      .checkUserRole(email)
+  }
+
+  // ── User init ─────────────────────────────────────────────────
+  function initUser(profile) {
+    const { email, role } = profile
+    userRole = role
+
+    const initial = email ? email[0].toUpperCase() : '?'
+    const name    = email ? email.split('@')[0] : '—'
+    const roleStr = role.charAt(0).toUpperCase() + role.slice(1)
+
+    // Sidebar
+    document.getElementById('sidebarAvatar').textContent = initial
+    document.getElementById('sidebarName').textContent   = name
+    document.getElementById('sidebarRole').textContent   = roleStr
+
+    // Profile page
+    document.getElementById('profAva').textContent   = initial
+    document.getElementById('profName').textContent  = name
+    document.getElementById('profEmail').textContent = email
+    document.getElementById('profRole').textContent  = roleStr
+    document.getElementById('profAcct').textContent  = email
+    document.getElementById('profDate').textContent  =
+      new Date().toLocaleDateString('es-GT', { dateStyle: 'long' })
+
+    document.getElementById('profRoleChip').innerHTML =
+      `<span class="role-chip ${role}">
+        <i class="fas fa-${role === 'admin' ? 'crown' : 'user'}"></i> ${roleStr}
+      </span>`
+
+    // Show admin-only items
+    if (role === 'admin') {
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'))
+      google.script.run
+        .withSuccessHandler(url => { document.getElementById('formFrame').src = url })
+        .getFormUrl()
+    }
+  }
+
+  // ── Load dashboard ────────────────────────────────────────────
+  function loadDashboard() {
+    document.getElementById('cardsWrap').innerHTML =
+      `<div class="state-box"><div class="spinner"></div><p>Cargando módulos...</p></div>`
+
+    document.getElementById('cntVigente').textContent  = '—'
+    document.getElementById('cntRequiere').textContent = '—'
+    document.getElementById('cntVencido').textContent  = '—'
+
+    const icon = document.getElementById('refreshIcon')
+    icon.style.animation = 'spin 0.75s linear infinite'
+
+    google.script.run
+      .withSuccessHandler(json => {
+        icon.style.animation = ''
+        buildCards(json)
+        document.getElementById('lastUpd').textContent =
+          'Actualizado: ' + new Date().toLocaleTimeString('es-GT')
+      })
+      .withFailureHandler(err => {
+        icon.style.animation = ''
+        document.getElementById('cardsWrap').innerHTML =
+          `<div class="state-box"><i class="fas fa-triangle-exclamation"></i>
+           <p>Error al cargar datos. Intenta de nuevo.</p></div>`
+        console.error('getResumenData:', err)
+      })
+      .getResumenData()
+  }
+
+  // ── Parse & build card list ────────────────────────────────────
+  function buildCards(jsonStr) {
+    let data
+    try { data = JSON.parse(jsonStr) } catch(e) {
+      document.getElementById('cardsWrap').innerHTML =
+        `<div class="state-box"><i class="fas fa-triangle-exclamation"></i><p>Error al procesar datos</p></div>`
+      return
+    }
+
+    allCards = []
+
+    ;(data.lines || []).forEach(lineObj => {
+      const lineKey = Object.keys(lineObj)[0]
+      const lineNum = lineKey.replace('line_', '')
+      ;(lineObj[lineKey] || []).forEach(entry => {
+        if (!entry.module) return
+        const s = calcStatus(entry.date, entry.frecuency)
+        allCards.push({
+          module   : entry.module,
+          lineKey,
+          lineNum,
+          date     : entry.date,
+          frequency: entry.frecuency,
+          info     : entry.info || '',
+          status   : s.status,
+          days     : s.days
+        })
+      })
+    })
+
+    // Sort: vencido → requiere → vigente
+    const order = { vencido: 0, requiere: 1, vigente: 2 }
+    allCards.sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3))
+
+    updateStats()
+    renderCards()
+  }
+
+  // ── Maintenance status logic ───────────────────────────────────
+  function calcStatus(dateStr, frequency) {
+    if (!dateStr || !frequency) return { status: 'unknown', days: 0 }
+    const p = dateStr.split('/')
+    if (p.length !== 3) return { status: 'unknown', days: 0 }
+
+    const last = new Date(+p[2], +p[1] - 1, +p[0])
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const next = new Date(last); next.setDate(next.getDate() + parseInt(frequency))
+
+    const diffDays = Math.round((next - today) / 86400000)
+
+    if (diffDays < 0)              return { status: 'vencido',  days: Math.abs(diffDays) }
+    if (diffDays <= WARNING_DAYS)  return { status: 'requiere', days: diffDays }
+    return                                { status: 'vigente',  days: diffDays }
+  }
+
+  // ── Stats counters ─────────────────────────────────────────────
+  function updateStats() {
+    const c = { vigente: 0, requiere: 0, vencido: 0 }
+    allCards.forEach(card => { if (c[card.status] !== undefined) c[card.status]++ })
+    document.getElementById('cntVigente').textContent  = c.vigente
+    document.getElementById('cntRequiere').textContent = c.requiere
+    document.getElementById('cntVencido').textContent  = c.vencido
+  }
+
+  // ── Render cards ───────────────────────────────────────────────
+  function renderCards() {
+    const wrap = document.getElementById('cardsWrap')
+    const list = activeFilter === 'all'
+      ? allCards
+      : allCards.filter(c => c.status === activeFilter)
+
+    if (list.length === 0) {
+      wrap.innerHTML = `<div class="state-box"><i class="fas fa-inbox"></i>
+        <p>No hay módulos en este estado.</p></div>`
+      return
+    }
+
+    const labels = { vigente: 'Vigente', requiere: 'Requiere Mantenimiento', vencido: 'Vencido' }
+
+    const msg = {
+      vigente : c =>
+        `Módulo <strong>${c.module}</strong> de Línea <strong>${c.lineNum}</strong> está vigente.
+         Próximo mantenimiento en <strong>${c.days} día${c.days !== 1 ? 's' : ''}</strong>.`,
+      requiere: c =>
+        `Módulo <strong>${c.module}</strong> de Línea <strong>${c.lineNum}</strong> requiere mantenimiento
+         ${c.days === 0 ? '<strong>hoy</strong>' : `en <strong>${c.days} día${c.days !== 1 ? 's' : ''}</strong>`}.`,
+      vencido : c =>
+        `Módulo <strong>${c.module}</strong> de Línea <strong>${c.lineNum}</strong> tiene vencido su mantenimiento
+         hace <strong>${c.days} día${c.days !== 1 ? 's' : ''}</strong>.`
+    }
+
+    wrap.innerHTML = `<div class="cards-grid">${list.map(c => `
+      <div class="mod-card ${c.status}">
+        <div class="card-head">
+          <div>
+            <div class="card-mod">${c.module}</div>
+            <div class="card-line">línea_${c.lineNum}</div>
+          </div>
+          <span class="badge ${c.status}">${labels[c.status]}</span>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row">
+            <i class="fas fa-calendar-check"></i>
+            Último mantenimiento: <strong>${c.date}</strong>
+          </div>
+          <div class="meta-row">
+            <i class="fas fa-rotate"></i>
+            Frecuencia: <strong>cada ${c.frequency} días</strong>
+          </div>
+          ${c.info ? `<div class="meta-row">
+            <i class="fas fa-circle-info"></i>
+            <strong>${c.info}</strong>
+          </div>` : ''}
+        </div>
+        <div class="card-msg ${c.status}">${msg[c.status]?.(c) ?? ''}</div>
+      </div>`).join('')}
+    </div>`
+  }
+
+  // ── Filter ─────────────────────────────────────────────────────
+  function applyFilter(filter, el) {
+    activeFilter = filter
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'))
+    el.classList.add('active')
+    renderCards()
+  }
+
+  // ── Navigation ──────────────────────────────────────────────────
+  const pageTitles = { dashboard: 'Dashboard', form: 'Formulario', profile: 'Perfil' }
+
+  function navigate(page) {
+    if (page === 'form' && userRole !== 'admin') return
+
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+
+    document.getElementById('page-' + page).classList.add('active')
+    document.querySelector(`[data-page="${page}"]`).classList.add('active')
+    document.getElementById('topbarTitle').textContent = pageTitles[page] || page
+
+    const refreshBtn = document.getElementById('refreshBtn')
+    refreshBtn.style.display = page === 'dashboard' ? 'inline-flex' : 'none'
+
+    if (window.innerWidth <= 800) toggleSidebar()
+  }
+
+  // Show refresh button on dashboard by default
+  document.getElementById('refreshBtn').style.display = 'inline-flex'
+
+  // ── Mobile sidebar ──────────────────────────────────────────────
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open')
+    document.getElementById('overlay').classList.toggle('open')
+  }
+</script>
+</body>
+</html>
